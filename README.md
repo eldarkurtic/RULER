@@ -4,8 +4,10 @@
 1. git clone git@github.com:eldarkurtic/RULER.git
 2. cd RULER
 3. git checkout -b llama4
-4. uv venv l4 --python 3.11
-5. source l4/bin/activate
+4. uv venv venv_l4 --python 3.11
+5. source venv_l4/bin/activate
+6. uv pip install -r requirements.txt
+7. uv pip install vllm --pre --extra-index-url https://wheels.vllm.ai/nightly
 
 # === Original RULER's README starts here ===
 # 📏 RULER: What’s the Real Context Size of Your Long-Context Language Models?
