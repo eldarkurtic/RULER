@@ -9,6 +9,23 @@
 6. uv pip install -r requirements.txt
 7. uv pip install vllm --pre --extra-index-url https://wheels.vllm.ai/nightly
 
+## Run RULER evals
+
+### Prepare data
+1. cd scripts/data/synthetic/json/
+2. python download_paulgraham_essay.py
+3. bash download_qa_dataset.sh
+4. Add chat template if it's a new model architecture at `scripts/data/template.py`
+
+### Serve the model with vLLM
+1. HF_HOME=/path/to/hf_home bash vllm_serve.sh <hf-model-stub> <num-gpus> <max-model-len>
+2. e.g. HF_HOME=/mnt/nvme1/eldar/hf_home bash vllm_serve.sh meta-llama/Llama-4-Scout-17B-16E-Instruct 8 262144
+
+### Run evals
+1. bash run.sh <hf-model-stub> synthetic <batch-size>
+2. e.g. bash run.sh meta-llama/Llama-4-Scout-17B-16E-Instruct synthetic 64
+
+
 # === Original RULER's README starts here ===
 # 📏 RULER: What’s the Real Context Size of Your Long-Context Language Models?
 

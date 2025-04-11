@@ -52,7 +52,7 @@ async def generate(request: Request) -> Response:
     stream = request_dict.pop("stream", False)
     sampling_params = SamplingParams(**request_dict)
     request_id = random_uuid()
-
+    
     results_generator = engine.generate(prompt,
                                         sampling_params,
                                         request_id)
@@ -109,3 +109,4 @@ if __name__ == "__main__":
                 timeout_keep_alive=TIMEOUT_KEEP_ALIVE,
                 ssl_keyfile=args.ssl_keyfile,
                 ssl_certfile=args.ssl_certfile)
+

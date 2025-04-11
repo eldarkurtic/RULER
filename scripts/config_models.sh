@@ -83,17 +83,25 @@ MODEL_SELECT() {
             TOKENIZER_TYPE="gemini"
             GEMINI_API_KEY=""
             ;;
+        *)
+            MODEL_PATH=$MODEL_NAME
+            MODEL_TEMPLATE_TYPE=$MODEL_NAME
+            MODEL_FRAMEWORK="vllm"
+            ;;
     esac
 
 
     if [ -z "${TOKENIZER_PATH}" ]; then
-        if [ -f ${MODEL_PATH}/tokenizer.model ]; then
-            TOKENIZER_PATH=${MODEL_PATH}/tokenizer.model
-            TOKENIZER_TYPE="nemo"
-        else
-            TOKENIZER_PATH=${MODEL_PATH}
-            TOKENIZER_TYPE="hf"
-        fi
+        TOKENIZER_PATH=${MODEL_PATH}
+        TOKENIZER_TYPE="hf"
+        # right now we are running only HF models which sometimes have tokenizer.model in addition to normal tokenizer.json which confuses RULER into thinking the model is a NEMO model
+        # if [ -f ${MODEL_PATH}/tokenizer.model ]; then
+        #     TOKENIZER_PATH=${MODEL_PATH}/tokenizer.model
+        #     TOKENIZER_TYPE="nemo"
+        # else
+        #     TOKENIZER_PATH=${MODEL_PATH}
+        #     TOKENIZER_TYPE="hf"
+        # fi
     fi
 
 

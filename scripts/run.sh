@@ -16,23 +16,24 @@
 # container: docker.io/cphsieh/ruler:0.1.0
 # bash run.sh MODEL_NAME BENCHMARK_NAME
 
-if [ $# -ne 2 ]; then
-    echo "Usage: $0 <model_name> $1 <benchmark_name>"
+if [ $# -ne 3 ]; then
+    echo "Usage: $0 <model_name> $1 <benchmark_name> $2 <batchsize>"
     exit 1
 fi
 
+MODEL_NAME=${1}
+BENCHMARK=${2}
+BATCH_SIZE=${3}
+VLLM_PORT=8000 # it is set in vllm_serve.sh
 
-# Root Directories
-GPUS="1" # GPU size for tensor_parallel.
-ROOT_DIR="benchmark_root" # the path that stores generated task samples and model predictions.
+ROOT_DIR="output_dir/${MODEL_NAME}/${BENCHMARK}" # the path that stores generated task samples and model predictions.
+echo "Saving results to: ${ROOT_DIR}"
+# NOTE: not relevant for HF model stubs and vllm 
 MODEL_DIR="../.." # the path that contains individual model folders from HUggingface.
 ENGINE_DIR="." # the path that contains individual engine folders from TensorRT-LLM.
-BATCH_SIZE=1  # increase to improve GPU utilization
-
 
 # Model and Tokenizer
 source config_models.sh
-MODEL_NAME=${1}
 MODEL_CONFIG=$(MODEL_SELECT ${MODEL_NAME} ${MODEL_DIR} ${ENGINE_DIR})
 IFS=":" read MODEL_PATH MODEL_TEMPLATE_TYPE MODEL_FRAMEWORK TOKENIZER_PATH TOKENIZER_TYPE OPENAI_API_KEY GEMINI_API_KEY AZURE_ID AZURE_SECRET AZURE_ENDPOINT <<< "$MODEL_CONFIG"
 if [ -z "${MODEL_PATH}" ]; then
@@ -50,39 +51,11 @@ export AZURE_API_ENDPOINT=${AZURE_ENDPOINT}
 
 # Benchmark and Tasks
 source config_tasks.sh
-BENCHMARK=${2}
 declare -n TASKS=$BENCHMARK
 if [ -z "${TASKS}" ]; then
     echo "Benchmark: ${BENCHMARK} is not supported"
     exit 1
 fi
-
-
-# Start server (you may want to run in other container.)
-if [ "$MODEL_FRAMEWORK" == "vllm" ]; then
-    python pred/serve_vllm.py \
-        --model=${MODEL_PATH} \
-        --tensor-parallel-size=${GPUS} \
-        --dtype bfloat16 \
-        --disable-custom-all-reduce \
-        &
-
-elif [ "$MODEL_FRAMEWORK" == "trtllm" ]; then
-    python pred/serve_trt.py \
-        --model_path=${MODEL_PATH} \
-        &
-
-elif [ "$MODEL_FRAMEWORK" == "sglang" ]; then
-    python -m sglang.launch_server \
-        --model-path ${MODEL_PATH} \
-        --tp ${GPUS} \
-        --port 5000 \
-        --enable-flashinfer \
-        &
-    # use sglang/test/killall_sglang.sh to kill sglang server if it hangs
-
-fi
-
 
 # Start client (prepare data / call model API / obtain final metrics)
 total_time=0
@@ -113,6 +86,7 @@ for MAX_SEQ_LENGTH in "${SEQ_LENGTHS[@]}"; do
             --benchmark ${BENCHMARK} \
             --task ${TASK} \
             --server_type ${MODEL_FRAMEWORK} \
+            --server_port ${VLLM_PORT} \
             --model_name_or_path ${MODEL_PATH} \
             --temperature ${TEMPERATURE} \
             --top_k ${TOP_K} \

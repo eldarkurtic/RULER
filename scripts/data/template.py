@@ -33,5 +33,6 @@ Templates = {
     
     'jamba': "<|startoftext|><|bom|><|system|> <|eom|><|bom|><|user|> {task_template}<|eom|><|bom|><|assistant|>",
 
-    'llama-4': "<|begin_of_text|><|header_start|>user<|header_end|>\n\n{task_template}<|eot|><|header_start|>assistant<|header_end|>\n\n",
+    'meta-llama/Llama-4-Scout-17B-16E-Instruct': "<|begin_of_text|><|header_start|>user<|header_end|>\n\n{task_template}<|eot|><|header_start|>assistant<|header_end|>\n\n",
+    'meta-llama/Llama-3.1-8b-Instruct': "<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n{task_template}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
 }
